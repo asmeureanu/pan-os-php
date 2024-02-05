@@ -1280,13 +1280,29 @@ DeviceCallContext::$supportedActions['display-shadowrule'] = array(
     'MainFunction' => function (DeviceCallContext $context)
     {
 
-        if (getenv("DG_SINGLE") == $context->object->name()) {
-            echo("\nFound: ".$context->object->name());
+
+        if(getenv("DG_SINGLE") !== false) {
+            if (getenv("DG_SINGLE") == $context->object->name()) {
+              echo("\nFound SINGLE: ".$context->object->name());
+            }
+            else {
+                echo("\nSkipping SINGLE... ".$context->object->name());
+                return;
+            }
         }
-        else {
-            echo("\nSkipping... ".$context->object->name());
-            return;
+
+        if (getenv("DG_MULTI")!== false) {
+            $lines = file(getenv("DG_MULTI"), FILE_IGNORE_NEW_LINES);
+            if (in_array($context->object->name(), $lines, true)  ) {
+                echo("\nFound MULTI: ".$context->object->name());
+            }
+
+            else {
+                echo("\nSkipping MULTI... ".$context->object->name());
+                return;
+            }
         }
+
 
         $object = $context->object;
         $classtype = get_class($object);
@@ -1562,6 +1578,30 @@ DeviceCallContext::$supportedActions['display-shadowrule'] = array(
         {
             PH::$JSON_TMP['sub'] = $jsonArray;
             $context->jsonArray[$sub_name] = $jsonArray;
+        }
+
+        if (getenv("DG_MULTI")!== false && getenv("DG_MULTI_DEL")!== false) {
+            $array = file(getenv("DG_MULTI"), FILE_IGNORE_NEW_LINES);
+            $key = array_search($context->object->name(), $array);
+
+            // Check if the value was found
+            if ($key !== false) {
+                // Remove the element using unset
+                unset($array[$key]);
+
+                // Open the file in write mode
+                $file = fopen(getenv("DG_MULTI"), 'w');
+
+                // Check if the file was opened successfully
+                if ($file) {
+                    // Loop through the array and write each element to a new line
+                    foreach ($array as $element) {
+                        fwrite($file, $element . PHP_EOL);
+                    }
+                    // Close the file
+                    fclose($file);
+                }
+            }
         }
 
     },
