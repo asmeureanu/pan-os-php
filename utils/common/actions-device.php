@@ -1279,6 +1279,15 @@ DeviceCallContext::$supportedActions['display-shadowrule'] = array(
     },
     'MainFunction' => function (DeviceCallContext $context)
     {
+
+        if (getenv("DG_SINGLE") == $context->object->name()) {
+            echo("\nFound: ".$context->object->name());
+        }
+        else {
+            echo("\nSkipping... ".$context->object->name());
+            return;
+        }
+
         $object = $context->object;
         $classtype = get_class($object);
 
@@ -3688,7 +3697,7 @@ DeviceCallContext::$supportedActions['system-mgt-config_users'] = array(
     'MainFunction' => function (DeviceCallContext $context) {
         $object = $context->object;
         $classtype = get_class($object);
-        
+
 
         if( $context->first )
         {
